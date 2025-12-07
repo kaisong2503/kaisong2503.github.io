@@ -83,7 +83,7 @@ a:visited {
 .button{
   display: inline-block;
   padding: 9px 18px;
-  background: hwb(0 69% 31%);
+  background: lab(87.76% 0 -0.01);
   color: #1f2933 !important;
   border-radius: 8px;
   text-decoration: none;
@@ -106,4 +106,45 @@ footer {
   text-align: center;
   font-size: 0.85rem;
   color: #6b7280;
+}
+
+.photo-row {
+  display: flex;
+  gap: 20px;          /* space between the photos */
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.pic {
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 12px;   /* rounded corners (use 50% for circles) */
+}
+
+.pic_small {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;   /* rounded corners (use 50% for circles) */
+}
+
+.photo-item {
+  text-align: center;
+  margin: 0;
+}
+
+.photo-item figcaption {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.photo-caption {
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-style: italic;
 }
