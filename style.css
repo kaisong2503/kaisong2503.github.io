@@ -82,13 +82,13 @@ a:visited {
 
 .button{
   display: inline-block;
-  padding: 9px 18px;
+  padding: 5px 10px;
   background: #e5e7eb;
   color: #1f2933 !important;
   border-radius: 8px;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 400;
+  font-size: 0.9rem;
   transition: background 0.15s ease, transform 0.1s ease;
 }
 
@@ -171,7 +171,7 @@ footer {
 
 
 .dark-mode {
-  background: #0f172a;   /* deep slate/navy */
+  background: #1e293b;   /* deep slate/navy */
   color: #e5e7eb;        /* soft light text */
 }
 
@@ -183,7 +183,7 @@ footer {
 
 /* Cards */
 .dark-mode section {
-  background: #1e293b;
+  background: #0f172a;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
@@ -208,14 +208,13 @@ footer {
 
 /* Buttons */
 .dark-mode .button {
-  background: #334155;
-  color: #f1f5f9 !important;
+  background: hsl(214, 14%, 30%);
+  color: #ffffff !important;
 }
 
 .dark-mode .button:hover {
-  background: #475569;
-  color: white !important;
-  transform: translateY(-1px);
+  background: #ffffff ;
+  color: #475569 !important;
 }
 
 /* Footer */

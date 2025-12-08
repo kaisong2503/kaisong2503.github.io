@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load saved preference
   if (localStorage.getItem("darkMode") === "enabled") {
     document.body.classList.add("dark-mode");
-    toggle.textContent = "☀️ Light Mode";
+    toggle.textContent = "☀️";
   }
 
   toggle.addEventListener("click", () => {
