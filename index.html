@@ -5,12 +5,13 @@
   <title>Kai Song</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Connect CSS -->
   <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
 </head>
 <body>
-
-  <header>
+  
+  <header class="site-header">
+  <button id="darkToggle" class="button dark-toggle">🌙</button>
     <h1>Kai Song</h1>
     <p>An aspiring economist</p>
     <p>Data Supported, Policy Driven, Impact Focused</p>
@@ -19,7 +20,7 @@
   <main>
     <section>
       <h2>About me</h2>
-      <p>
+      <p id="typewriter">
       I have finished economics honours in ANU in 2025, 
       with strong interests in public and development economics, 
       inequality studies, and econometrics. Passionate about careful data-driven 
@@ -28,14 +29,12 @@
 
     <p>      
       The best way to contact me is via
-      <a href="mailto:kaisong2503@gmail.com?subject=Contact%20enquiry">email. </a> 
-      You may also want to checkout my 
-      <a href="https://github.com/kaisong2503">Github.
-      </a>
+      <a href="mailto:kaisong2503@gmail.com?subject=Contact%20enquiry">email</a>, You may also want to checkout my 
+      <a href="https://github.com/kaisong2503">Githubs</a>.
     </p>
 
     <p>
-      <a href="CV.pdf" target="_blank" class="button" >Download My CV</a>
+      <a href="pdfs/CV.pdf" target="_blank" class="button" >CV</a>
     </p>
     </section>
 
@@ -51,10 +50,25 @@
 </p>
 
 <p>
-  <a href="research.html" class="button">
-   View My Research Projects
-  </a>
+<a href="research.html" class="button">View my research</a>
 </p>
+    </section>
+
+    <section>
+      <h2>Teachings</h2>
+      <p>
+        I have experience as a teaching assistant for undergraduate introductory 
+        and intermediate microeconomics at ANU. Through this experience, I have 
+        learned to adapt my teaching to different learning styles while encouraging 
+        students to think independently and communicate economic ideas clearly.
+      </p>
+
+      <p>
+        Like my perception of good research, my ideal way of teaching is grounded in the 
+        integration of economic intuition, formal theory, and real-world examples.
+        I aim to help students understand not only how models work, but why they matter. 
+        I emphasise clarity, intuition, and active engagement before technical detail.
+      </p>
     </section>
 
     <section>
@@ -63,6 +77,17 @@
 
     <section>
       <h2>Personal</h2>
+      <p>
+        I enjoy running, fitness, black coffee, and a fine craft beer. 
+        In 2025, I completed my first marathon at the Canberra Marathon Festival. 
+      </p>
+      <p>
+        Fun fact: I had a presentation 
+        coming up three days after the marathon, 
+        so I ran the full 42 km while listning to
+        <i>A Schumpeterian Model of Top Income Inequality</i> 
+        <a href="https://web.stanford.edu/~chadj/inequality.pdf">
+          (Jones and Kim, 2018)</a>. I scored the highest mark in that presentation.
     </section>
 <!-- First row: Marathon -->
 <div class="photo-row">
@@ -103,8 +128,7 @@
       <p> "Keep struggling, stay hybrid."</p>
     </footer>
 
-  <!-- Connect JavaScript -->
-  <script src="script.js"></script>
+
 
 </body>
 </html>

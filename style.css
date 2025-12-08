@@ -11,7 +11,7 @@ body {
 /* ---------- Header ---------- */
 
 header {
-  background: linear-gradient(135deg, #1e293b, #111827);
+  background: linear-gradient(135deg, #041702, #000000);
   color: white;
   text-align: center;
   padding: 56px 20px;
@@ -83,7 +83,7 @@ a:visited {
 .button{
   display: inline-block;
   padding: 9px 18px;
-  background: lab(87.76% 0 -0.01);
+  background: #e5e7eb;
   color: #1f2933 !important;
   border-radius: 8px;
   text-decoration: none;
@@ -148,3 +148,84 @@ footer {
   color: #6b7280;
   font-style: italic;
 }
+
+#typewriter {
+  min-height: 4.5em;
+  white-space: normal;
+}
+
+/* ---------- Dark Mode ---------- */
+/* ---------- Dark Mode Button Position ---------- */
+
+.site-header {
+  position: relative;   /* allows absolutely positioned children */
+}
+
+.dark-toggle {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+}
+
+
+.dark-mode {
+  background: #0f172a;   /* deep slate/navy */
+  color: #e5e7eb;        /* soft light text */
+}
+
+/* Header */
+.dark-mode header {
+  background: linear-gradient(135deg, #041702, #000000);
+  color: #f3f4f6;
+}
+
+/* Cards */
+.dark-mode section {
+  background: #1e293b;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Headings */
+.dark-mode h2 {
+  color: #f3f4f6;
+}
+
+/* Paragraphs */
+.dark-mode p {
+  color: #d1d5db;
+}
+
+/* Links */
+.dark-mode a {
+  color: #93c5fd;
+}
+
+.dark-mode a:hover {
+  color: #bfdbfe;
+}
+
+/* Buttons */
+.dark-mode .button {
+  background: #334155;
+  color: #f1f5f9 !important;
+}
+
+.dark-mode .button:hover {
+  background: #475569;
+  color: white !important;
+  transform: translateY(-1px);
+}
+
+/* Footer */
+.dark-mode footer {
+  color: #9ca3af;
+}
+
+/* Photo captions */
+.dark-mode .photo-caption,
+.dark-mode .photo-item figcaption {
+  color: #9ca3af;
+}
+/* ---------- End of Dark Mode ---------- */
