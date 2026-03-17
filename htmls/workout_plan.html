@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Workout Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #f0ede8;
+    --muted: #888;
+    --push: #e8673a;
+    --pull: #4a9eff;
+    --legs: #a259ff;
+    --run: #2ecc71;
+    --hiit: #f0c040;
+    --sport: #ff6b9d;
+    --active: #5ecfcf;
+    --long: #ff9f43;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .page-header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .page-header h1 span {
+    color: var(--push);
+  }
+
+  .page-header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 8px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .tab {
+    padding: 10px 28px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--push);
+    color: #fff;
+  }
+
+  .plan { display: none; }
+  .plan.active { display: block; }
+
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .day-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .day-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .session-pill {
+    border-radius: 10px;
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: all 0.18s;
+    border: 1.5px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .session-pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background: currentColor;
+  }
+
+  .session-pill:hover {
+    transform: translateY(-2px);
+    border-color: currentColor;
+  }
+
+  .session-pill.selected {
+    border-color: currentColor;
+    transform: translateY(-2px);
+  }
+
+  .pill-tag {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .pill-title {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .pill-time {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-top: 3px;
+  }
+
+  /* Session colors */
+  .c-push { color: var(--push); background: color-mix(in srgb, var(--push) 12%, var(--surface)); }
+  .c-pull { color: var(--pull); background: color-mix(in srgb, var(--pull) 12%, var(--surface)); }
+  .c-legs { color: var(--legs); background: color-mix(in srgb, var(--legs) 12%, var(--surface)); }
+  .c-run { color: var(--run); background: color-mix(in srgb, var(--run) 12%, var(--surface)); }
+  .c-hiit { color: var(--hiit); background: color-mix(in srgb, var(--hiit) 12%, var(--surface)); }
+  .c-sport { color: var(--sport); background: color-mix(in srgb, var(--sport) 12%, var(--surface)); }
+  .c-active { color: var(--active); background: color-mix(in srgb, var(--active) 12%, var(--surface)); }
+  .c-long { color: var(--long); background: color-mix(in srgb, var(--long) 12%, var(--surface)); }
+
+  /* Detail panel */
+  .detail-wrap {
+    min-height: 48px;
+    margin-bottom: 32px;
+  }
+
+  .detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    display: none;
+    animation: slideIn 0.2s ease;
+  }
+
+  .detail-panel.visible { display: block; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .detail-day-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .detail-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .detail-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .close-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .close-btn:hover { color: var(--text); border-color: #555; }
+
+  .movements {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .movements thead th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 0 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  .movements thead th:not(:first-child) {
+    padding-left: 16px;
+  }
+
+  .movements tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  .movements tbody tr:last-child { border-bottom: none; }
+  .movements tbody tr:hover { background: var(--surface2); }
+
+  .movements td {
+    padding: 12px 0;
+    font-size: 14px;
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+
+  .movements td:not(:first-child) {
+    padding-left: 16px;
+  }
+
+  .sets-chip {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--text);
+  }
+
+  .note-cell {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .leg-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .week-grid { grid-template-columns: 1fr; gap: 24px; }
+    .day-col { flex-direction: row; flex-wrap: wrap; align-items: center; }
+    .day-name { width: 100%; }
+    .session-pill { flex: 1; min-width: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>WEEKLY <span>TRAINING</span></h1>
+  <p>Click any session to see the full breakdown</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPlan('one', event)">1 session / day</button>
+  <button class="tab" onclick="showPlan('two', event)">2 sessions / day</button>
+</div>
+
+<!-- 1 SESSION PLAN -->
+<div class="plan active" id="plan-one">
+  <div class="week-grid">
+
+    <div class="day-col">
+      <div class="day-name">Mon</div>
+      <div class="session-pill c-push" onclick="showDetail('one','mon-push')">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Push</div>
+        <div class="pill-time">45 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Tue</div>
+      <div class="session-pill c-run" onclick="showDetail('one','tue-run')">
+        <div class="pill-tag">AM · Cardio</div>
+        <div class="pill-title">Run intervals</div>
+        <div class="pill-time">45 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Wed</div>
+      <div class="session-pill c-pull" onclick="showDetail('one','wed-pull')">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Pull</div>
+        <div class="pill-time">45 min · Gym</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Thu</div>
+      <div class="session-pill c-active" onclick="showDetail('one','thu-active')">
+        <div class="pill-tag">AM · Recovery</div>
+        <div class="pill-title">Active recovery</div>
+        <div class="pill-time">35 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Fri</div>
+      <div class="session-pill c-legs" onclick="showDetail('one','fri-legs')">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Legs</div>
+        <div class="pill-time">45 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Sat</div>
+      <div class="session-pill c-sport" onclick="showDetail('one','sat-sport')">
+        <div class="pill-tag">Morning · Sport</div>
+        <div class="pill-title">Fun sport</div>
+        <div class="pill-time">60–90 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Sun</div>
+      <div class="session-pill c-long" onclick="showDetail('one','sun-long')">
+        <div class="pill-tag">Morning · Cardio</div>
+        <div class="pill-title">Long slow run</div>
+        <div class="pill-time">60 min</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="detail-wrap"><div class="detail-panel" id="detail-one"></div></div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--push)"></div>Push</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--pull)"></div>Pull</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--legs)"></div>Legs</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--run)"></div>Run</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--sport)"></div>Sport</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--active)"></div>Active recovery</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--long)"></div>Long run</div>
+  </div>
+</div>
+
+<!-- 2 SESSION PLAN -->
+<div class="plan" id="plan-two">
+  <div class="week-grid">
+
+    <div class="day-col">
+      <div class="day-name">Mon</div>
+      <div class="session-pill c-push" onclick="showDetail('two','mon-push')" style="margin-bottom:2px;">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Push</div>
+        <div class="pill-time">40 min</div>
+      </div>
+      <div class="session-pill c-hiit" onclick="showDetail('two','mon-hiit')">
+        <div class="pill-tag">PM · Cardio</div>
+        <div class="pill-title">HIIT</div>
+        <div class="pill-time">30 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Tue</div>
+      <div class="session-pill c-pull" onclick="showDetail('two','tue-pull')" style="margin-bottom:2px;">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Pull</div>
+        <div class="pill-time">40 min · Gym</div>
+      </div>
+      <div class="session-pill c-run" onclick="showDetail('two','tue-run')">
+        <div class="pill-tag">PM · Cardio</div>
+        <div class="pill-title">Easy run</div>
+        <div class="pill-time">30 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Wed</div>
+      <div class="session-pill c-legs" onclick="showDetail('two','wed-legs')" style="margin-bottom:2px;">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Legs</div>
+        <div class="pill-time">40 min</div>
+      </div>
+      <div class="session-pill c-hiit" onclick="showDetail('two','wed-hiit')">
+        <div class="pill-tag">PM · Cardio</div>
+        <div class="pill-title">HIIT</div>
+        <div class="pill-time">30 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Thu</div>
+      <div class="session-pill c-push" onclick="showDetail('two','thu-push')" style="margin-bottom:2px;">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Push</div>
+        <div class="pill-time">40 min</div>
+      </div>
+      <div class="session-pill c-sport" onclick="showDetail('two','thu-sport')">
+        <div class="pill-tag">PM · Sport</div>
+        <div class="pill-title">Fun sport</div>
+        <div class="pill-time">60–90 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Fri</div>
+      <div class="session-pill c-pull" onclick="showDetail('two','fri-pull')" style="margin-bottom:2px;">
+        <div class="pill-tag">AM · Strength</div>
+        <div class="pill-title">Pull</div>
+        <div class="pill-time">40 min · Gym</div>
+      </div>
+      <div class="session-pill c-active" onclick="showDetail('two','fri-active')" style="background: color-mix(in srgb, var(--hiit) 12%, #161616); color: var(--hiit);">
+        <div class="pill-tag">PM · Flex</div>
+        <div class="pill-title">Active rec. / HIIT</div>
+        <div class="pill-time">30 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Sat</div>
+      <div class="session-pill c-sport" onclick="showDetail('two','sat-sport')" style="margin-bottom:2px;">
+        <div class="pill-tag">Morning · Sport</div>
+        <div class="pill-title">Fun sport</div>
+        <div class="pill-time">60–90 min</div>
+      </div>
+      <div class="session-pill c-active" onclick="showDetail('two','sat-active')">
+        <div class="pill-tag">PM · Recovery</div>
+        <div class="pill-title">Active recovery</div>
+        <div class="pill-time">30 min</div>
+      </div>
+    </div>
+
+    <div class="day-col">
+      <div class="day-name">Sun</div>
+      <div class="session-pill c-long" onclick="showDetail('two','sun-long')" style="margin-bottom:2px;">
+        <div class="pill-tag">Morning · Cardio</div>
+        <div class="pill-title">Long slow run</div>
+        <div class="pill-time">60 min</div>
+      </div>
+      <div class="session-pill c-active" onclick="showDetail('two','sun-active')">
+        <div class="pill-tag">Eve · Recovery</div>
+        <div class="pill-title">Active recovery</div>
+        <div class="pill-time">25 min</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="detail-wrap"><div class="detail-panel" id="detail-two"></div></div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--push)"></div>Push</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--pull)"></div>Pull</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--legs)"></div>Legs</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--run)"></div>Run</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--hiit)"></div>HIIT</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--sport)"></div>Sport</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--active)"></div>Active recovery</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--long)"></div>Long run</div>
+  </div>
+</div>
+
+<script>
+const data = {
+  one: {
+    'mon-push': {
+      day: 'Monday', title: 'PUSH', sub: 'Chest · Shoulders · Triceps — Free weights · 45 min', color: 'var(--push)',
+      movements: [
+        { name: 'Barbell bench press', sets: '4 × 6–8', note: 'Main compound, go heavy' },
+        { name: 'Overhead press (barbell or DB)', sets: '3 × 8–10', note: 'Seated or standing' },
+        { name: 'Dumbbell incline press', sets: '3 × 10–12', note: 'Upper chest focus' },
+        { name: 'Lateral raises (DB or band)', sets: '3 × 12–15', note: 'Controlled, no swinging' },
+        { name: 'Tricep overhead extension (DB) or band pushdown', sets: '3 × 12–15', note: 'Finish with arms' },
+      ]
+    },
+    'tue-run': {
+      day: 'Tuesday', title: 'RUN INTERVALS', sub: 'Speed or tempo work · 45 min', color: 'var(--run)',
+      movements: [
+        { name: 'Warm-up jog', sets: '10 min', note: 'Easy pace to wake up the legs' },
+        { name: 'Intervals or tempo block', sets: '25 min', note: '6×400m with 90s rest, or 20 min at comfortably hard pace' },
+        { name: 'Cool-down jog', sets: '10 min', note: 'Easy pace, let heart rate drop' },
+      ]
+    },
+    'wed-pull': {
+      day: 'Wednesday', title: 'PULL', sub: 'Back · Biceps · Rear delts — Gym day · 45 min', color: 'var(--pull)',
+      movements: [
+        { name: 'Deadlift', sets: '4 × 5–6', note: 'Heaviest lift, do first while fresh' },
+        { name: 'Assisted pull-ups', sets: '2–3 × 6–8', note: 'Work toward unassisted over time' },
+        { name: 'Lat pulldown', sets: '2 × 10–12', note: '4–5 sets combined with pull-ups' },
+        { name: 'Seated cable row', sets: '3 × 10–12', note: 'Squeeze at the end of each rep' },
+        { name: 'Cable face pulls', sets: '3 × 15–20', note: 'Rear delts and rotator cuff health' },
+        { name: 'Dumbbell hammer curls', sets: '3 × 12', note: 'Finish with arms' },
+      ]
+    },
+    'thu-active': {
+      day: 'Thursday', title: 'ACTIVE RECOVERY', sub: 'Low intensity · Keep moving · 35 min', color: 'var(--active)',
+      movements: [
+        { name: 'Zone 2 walk or easy jog', sets: '20 min', note: 'Conversational pace, no effort' },
+        { name: 'Hip flexor & hamstring stretches', sets: '5 min', note: 'Hold each 30–45 sec' },
+        { name: 'Thoracic mobility', sets: '5 min', note: 'Chest openers, cat-cow' },
+        { name: 'Foam rolling', sets: '5 min', note: 'Quads, IT band, upper back' },
+      ]
+    },
+    'fri-legs': {
+      day: 'Friday', title: 'LEGS', sub: 'Quads · Hamstrings · Glutes · Calves — Free weights · 45 min', color: 'var(--legs)',
+      movements: [
+        { name: 'Barbell back squat', sets: '4 × 6–8', note: 'Or goblet squat with heavy DB if no rack' },
+        { name: 'Romanian deadlift (DB or barbell)', sets: '3 × 10', note: 'Control the descent' },
+        { name: 'Bulgarian split squat (DB)', sets: '3 × 8–10 each', note: 'Rear foot elevated' },
+        { name: 'Banded glute bridge or hip thrust', sets: '3 × 15', note: 'Drive through heels' },
+        { name: 'Single-leg calf raise', sets: '4 × 15', note: 'Bodyweight or holding a DB' },
+      ]
+    },
+    'sat-sport': {
+      day: 'Saturday', title: 'FUN SPORT', sub: 'Pick what sounds good · 60–90 min', color: 'var(--sport)',
+      movements: [
+        { name: 'Tennis, basketball, soccer, swim, or hiking', sets: '60–90 min', note: 'No structure — just move and enjoy it' },
+      ]
+    },
+    'sun-long': {
+      day: 'Sunday', title: 'LONG SLOW RUN', sub: 'Aerobic base building · 60 min', color: 'var(--long)',
+      movements: [
+        { name: 'Easy long run', sets: '60 min', note: "Conversational pace — if you can't talk, slow down" },
+        { name: 'Post-run stretch', sets: '5–10 min', note: 'Calves, quads, hip flexors' },
+      ]
+    },
+  },
+  two: {
+    'mon-push': {
+      day: 'Monday AM', title: 'PUSH', sub: 'Chest · Shoulders · Triceps — Free weights · 40 min', color: 'var(--push)',
+      movements: [
+        { name: 'Barbell bench press', sets: '4 × 6–8', note: 'Go heavy, this is your first session' },
+        { name: 'Overhead press (barbell or DB)', sets: '3 × 8–10', note: '' },
+        { name: 'Dumbbell incline press', sets: '3 × 10–12', note: 'Drop one accessory vs 1-session plan' },
+        { name: 'Lateral raises (DB or band)', sets: '3 × 12–15', note: '' },
+      ]
+    },
+    'mon-hiit': {
+      day: 'Monday PM', title: 'HIIT', sub: 'High intensity interval training · 30 min', color: 'var(--hiit)',
+      movements: [
+        { name: 'Warm-up', sets: '5 min', note: 'Light jog or jumping jacks' },
+        { name: 'Work intervals', sets: '20 min', note: '40 sec on / 20 sec off — burpees, KB swings, box jumps, sprints' },
+        { name: 'Cool-down', sets: '5 min', note: 'Walk and breathe down' },
+      ]
+    },
+    'tue-pull': {
+      day: 'Tuesday AM', title: 'PULL', sub: 'Back · Biceps · Rear delts — Gym day · 40 min', color: 'var(--pull)',
+      movements: [
+        { name: 'Deadlift', sets: '4 × 5–6', note: 'Do first while freshest' },
+        { name: 'Assisted pull-ups', sets: '2–3 × 6–8', note: 'Work toward unassisted over time' },
+        { name: 'Lat pulldown', sets: '2 × 10–12', note: '4–5 sets combined with pull-ups' },
+        { name: 'Seated cable row', sets: '3 × 10–12', note: '' },
+        { name: 'Cable face pulls', sets: '3 × 15–20', note: 'Rear delts and rotator cuff health' },
+        { name: 'Dumbbell hammer curls', sets: '3 × 12', note: '' },
+      ]
+    },
+    'tue-run': {
+      day: 'Tuesday PM', title: 'EASY RUN', sub: 'Zone 2 · 30 min', color: 'var(--run)',
+      movements: [
+        { name: 'Easy zone 2 run', sets: '30 min', note: 'Conversational pace, let the body recover from the AM session' },
+      ]
+    },
+    'wed-legs': {
+      day: 'Wednesday AM', title: 'LEGS', sub: 'Quads · Hamstrings · Glutes — Free weights · 40 min', color: 'var(--legs)',
+      movements: [
+        { name: 'Barbell back squat', sets: '4 × 6–8', note: '' },
+        { name: 'Romanian deadlift (DB)', sets: '3 × 10', note: 'Control the descent' },
+        { name: 'Bulgarian split squat (DB)', sets: '3 × 8–10 each', note: '' },
+        { name: 'Banded glute bridge', sets: '3 × 15', note: 'Drive through heels' },
+        { name: 'Single-leg calf raise', sets: '4 × 15', note: '' },
+      ]
+    },
+    'wed-hiit': {
+      day: 'Wednesday PM', title: 'HIIT', sub: 'High intensity · 30 min', color: 'var(--hiit)',
+      movements: [
+        { name: 'Warm-up', sets: '5 min', note: '' },
+        { name: 'Work intervals', sets: '20 min', note: '40 sec on / 20 sec off — avoid heavy leg movements, focus on upper body or cardio-based (battle ropes, rowing, push-up variations)' },
+        { name: 'Cool-down', sets: '5 min', note: '' },
+      ]
+    },
+    'thu-push': {
+      day: 'Thursday AM', title: 'PUSH', sub: 'Chest · Shoulders · Triceps — Free weights · 40 min', color: 'var(--push)',
+      movements: [
+        { name: 'Barbell bench press (or DB variation)', sets: '4 × 6–8', note: 'Slight variation from Monday' },
+        { name: 'Overhead press', sets: '3 × 8–10', note: '' },
+        { name: 'Lateral raises', sets: '3 × 12–15', note: '' },
+        { name: 'Tricep overhead extension or band pushdown', sets: '3 × 12–15', note: '' },
+      ]
+    },
+    'thu-sport': {
+      day: 'Thursday PM', title: 'FUN SPORT', sub: 'Pick what sounds good · 60–90 min', color: 'var(--sport)',
+      movements: [
+        { name: 'Tennis, basketball, soccer, swim, or hiking', sets: '60–90 min', note: 'Legs are relatively fresh — good day for sport' },
+      ]
+    },
+    'fri-pull': {
+      day: 'Friday AM', title: 'PULL', sub: 'Back · Biceps · Rear delts — Gym day · 40 min', color: 'var(--pull)',
+      movements: [
+        { name: 'Deadlift', sets: '4 × 5–6', note: '' },
+        { name: 'Assisted pull-ups', sets: '2–3 × 6–8', note: '' },
+        { name: 'Lat pulldown', sets: '2 × 10–12', note: '' },
+        { name: 'Seated cable row', sets: '3 × 10–12', note: '' },
+        { name: 'Cable face pulls', sets: '3 × 15–20', note: '' },
+        { name: 'Dumbbell hammer curls', sets: '3 × 12', note: '' },
+      ]
+    },
+    'fri-active': {
+      day: 'Friday PM', title: 'ACTIVE REC. / HIIT', sub: 'Flexible — read your body · 30 min', color: 'var(--hiit)',
+      movements: [
+        { name: 'If feeling good → HIIT', sets: '30 min', note: '40/20 intervals, keep it fun' },
+        { name: 'If tired → Active recovery', sets: '30 min', note: 'Zone 2 walk, stretch, foam roll — no shame in this' },
+      ]
+    },
+    'sat-sport': {
+      day: 'Saturday Morning', title: 'FUN SPORT', sub: 'Weekend — enjoy it · 60–90 min', color: 'var(--sport)',
+      movements: [
+        { name: 'Tennis, basketball, soccer, swim, or hiking', sets: '60–90 min', note: 'Weekend sport — make it social' },
+      ]
+    },
+    'sat-active': {
+      day: 'Saturday PM', title: 'ACTIVE RECOVERY', sub: 'Wind down after sport · 30 min', color: 'var(--active)',
+      movements: [
+        { name: 'Easy walk', sets: '15 min', note: 'Flush out the legs after sport' },
+        { name: 'Full body stretch', sets: '10 min', note: 'Hold each stretch 45–60 sec' },
+        { name: 'Foam rolling', sets: '5 min', note: 'Focus on whatever is tight' },
+      ]
+    },
+    'sun-long': {
+      day: 'Sunday Morning', title: 'LONG SLOW RUN', sub: 'Aerobic base building · 60 min', color: 'var(--long)',
+      movements: [
+        { name: 'Easy long run', sets: '60 min', note: "Conversational pace — if you can't talk, slow down" },
+        { name: 'Post-run stretch', sets: '5–10 min', note: 'Calves, quads, hip flexors' },
+      ]
+    },
+    'sun-active': {
+      day: 'Sunday Evening', title: 'ACTIVE RECOVERY', sub: 'End of week wind-down · 25 min', color: 'var(--active)',
+      movements: [
+        { name: 'Easy walk or light yoga', sets: '15 min', note: 'Keep it gentle after the long run' },
+        { name: 'Foam rolling & breathwork', sets: '10 min', note: 'Prep the body for the week ahead' },
+      ]
+    },
+  }
+};
+
+let currentPlan = 'one';
+let currentSession = null;
+
+function showPlan(id, e) {
+  document.querySelectorAll('.plan').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('plan-' + id).classList.add('active');
+  e.target.classList.add('active');
+  currentPlan = id;
+  currentSession = null;
+  document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('visible'));
+  document.querySelectorAll('.session-pill').forEach(p => p.classList.remove('selected'));
+}
+
+function showDetail(plan, key) {
+  const d = data[plan][key];
+  if (!d) return;
+  const panel = document.getElementById('detail-' + plan);
+
+  document.querySelectorAll('#plan-' + plan + ' .session-pill').forEach(p => p.classList.remove('selected'));
+
+  if (currentSession === key && panel.classList.contains('visible')) {
+    panel.classList.remove('visible');
+    currentSession = null;
+    return;
+  }
+
+  currentSession = key;
+  event.currentTarget.classList.add('selected');
+
+  const rows = d.movements.map(m => `
+    <tr>
+      <td style="width:42%">${m.name}</td>
+      <td style="width:20%"><span class="sets-chip">${m.sets}</span></td>
+      <td class="note-cell">${m.note}</td>
+    </tr>
+  `).join('');
+
+  panel.innerHTML = `
+    <div class="detail-top">
+      <div>
+        <div class="detail-day-label">${d.day}</div>
+        <div class="detail-title" style="color:${d.color}">${d.title}</div>
+        <div class="detail-sub">${d.sub}</div>
+      </div>
+      <button class="close-btn" onclick="closeDetail('${plan}')">×</button>
+    </div>
+    <table class="movements">
+      <thead><tr><th>Movement</th><th>Sets × reps</th><th>Notes</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeDetail(plan) {
+  document.getElementById('detail-' + plan).classList.remove('visible');
+  document.querySelectorAll('#plan-' + plan + ' .session-pill').forEach(p => p.classList.remove('selected'));
+  currentSession = null;
+}
+</script>
+</body>
+</html>

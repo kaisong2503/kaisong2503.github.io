@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Meal Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --breakfast: #F5A623;
+    --breakfast-light: #FEF3E2;
+    --breakfast-dark: #7A4E00;
+    --lunch: #4A90D9;
+    --lunch-light: #E8F2FB;
+    --lunch-dark: #0D3F6E;
+    --dinner: #7B68EE;
+    --dinner-light: #EEEAFF;
+    --dinner-dark: #2D1A8A;
+    --snack: #50C878;
+    --snack-light: #E4F7EB;
+    --snack-dark: #1A5C30;
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --text: #1A1A1A;
+    --text-muted: #7A7A7A;
+    --border: #E8E4DC;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* TOP NAV */
+  .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .nav-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab { padding: 6px 16px; border-radius: 99px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all 0.15s; }
+  .nav-tab.active { background: var(--text); color: white; }
+  .nav-right { display: flex; gap: 8px; align-items: center; }
+  .week-selector { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; }
+  .week-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .week-btn:hover { background: var(--bg); }
+
+  /* TABS */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* PLANNER VIEW */
+  .planner { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .planner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .planner-title { font-family: 'DM Serif Display', serif; font-size: 26px; }
+  .planner-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .btn { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all 0.12s; font-family: 'DM Sans', sans-serif; }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--text); color: white; border-color: var(--text); }
+  .btn-primary:hover { background: #333; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-danger { border-color: #ffcccc; color: #c0392b; background: #fff5f5; }
+  .btn-danger:hover { background: #ffebeb; }
+
+  .day-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 12px; }
+  .day-col { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .day-header { padding: 10px 12px; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .day-name { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .day-date { font-size: 18px; font-weight: 500; color: var(--text); line-height: 1.2; }
+  .day-meals { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+
+  .meal-slot { border-radius: 8px; padding: 8px 10px; cursor: pointer; position: relative; transition: all 0.12s; min-height: 52px; }
+  .meal-slot:hover { filter: brightness(0.96); }
+  .meal-slot.breakfast { background: var(--breakfast-light); }
+  .meal-slot.lunch { background: var(--lunch-light); }
+  .meal-slot.dinner { background: var(--dinner-light); }
+  .meal-slot.snack { background: var(--snack-light); }
+  .meal-slot.empty { background: var(--bg); border: 1.5px dashed var(--border); }
+  .meal-slot.missing { opacity: 0.55; border: 1.5px dashed currentColor; }
+
+  .meal-type-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 3px; }
+  .meal-slot.breakfast .meal-type-tag { color: var(--breakfast-dark); }
+  .meal-slot.lunch .meal-type-tag { color: var(--lunch-dark); }
+  .meal-slot.dinner .meal-type-tag { color: var(--dinner-dark); }
+  .meal-slot.snack .meal-type-tag { color: var(--snack-dark); }
+
+  .meal-name { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .meal-note { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .meal-swap-badge { font-size: 10px; background: #FFF3CD; color: #856404; border-radius: 4px; padding: 1px 5px; margin-top: 3px; display: inline-block; }
+  .meal-missing-badge { font-size: 10px; background: #F8D7DA; color: #842029; border-radius: 4px; padding: 1px 5px; margin-top: 3px; display: inline-block; }
+
+  .meal-actions { display: none; position: absolute; top: 4px; right: 4px; gap: 3px; }
+  .meal-slot:hover .meal-actions { display: flex; }
+  .meal-action-btn { width: 20px; height: 20px; border-radius: 4px; border: none; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.8); color: var(--text); }
+
+  .legend { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* GROCERY VIEW */
+  .grocery { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .grocery-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .panel-title { font-family: 'DM Serif Display', serif; font-size: 18px; }
+  .panel-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .panel-body { padding: 16px 20px; }
+
+  .grocery-section { margin-bottom: 16px; }
+  .grocery-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .grocery-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--bg); cursor: pointer; }
+  .grocery-item:last-child { border-bottom: none; }
+  .grocery-item:hover { background: var(--bg); margin: 0 -8px; padding: 7px 8px; border-radius: 6px; }
+  .g-check { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+  .g-check.ticked { background: #1D9E75; border-color: #1D9E75; }
+  .g-check.ticked::after { content: ''; display: block; width: 5px; height: 9px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg) translate(-1px,-1px); }
+  .g-name { font-size: 13px; flex: 1; color: var(--text); }
+  .grocery-item.ticked .g-name { text-decoration: line-through; color: var(--text-muted); }
+  .g-qty { font-size: 12px; color: var(--text-muted); }
+
+  .available-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; background: var(--snack-light); margin-bottom: 5px; }
+  .available-item .g-name { color: var(--snack-dark); font-size: 13px; font-weight: 500; }
+  .available-count { background: #1D9E75; color: white; font-size: 11px; font-weight: 600; border-radius: 99px; padding: 2px 8px; }
+  .missing-count { background: #E24B4A; color: white; font-size: 11px; font-weight: 600; border-radius: 99px; padding: 2px 8px; }
+  .empty-state { text-align: center; padding: 32px 20px; color: var(--text-muted); font-size: 13px; }
+
+  /* HISTORY VIEW */
+  .history { padding: 24px; max-width: 900px; margin: 0 auto; }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .history-title { font-family: 'DM Serif Display', serif; font-size: 26px; }
+  .week-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; }
+  .week-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .week-card-title { font-family: 'DM Serif Display', serif; font-size: 18px; }
+  .week-card-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .week-card-actions { display: flex; gap: 6px; }
+  .week-meals-preview { display: flex; gap: 6px; flex-wrap: wrap; }
+  .preview-chip { font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 500; }
+  .chip-b { background: var(--breakfast-light); color: var(--breakfast-dark); }
+  .chip-l { background: var(--lunch-light); color: var(--lunch-dark); }
+  .chip-d { background: var(--dinner-light); color: var(--dinner-dark); }
+  .chip-s { background: var(--snack-light); color: var(--snack-dark); }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 16px; padding: 28px; width: 420px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 6px; }
+  .modal-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .modal-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--bg); outline: none; }
+  .modal-input:focus { border-color: var(--dinner); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .type-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+  .type-opt { padding: 6px 14px; border-radius: 99px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.12s; }
+  .type-opt[data-t="breakfast"].sel { background: var(--breakfast-light); border-color: var(--breakfast); color: var(--breakfast-dark); }
+  .type-opt[data-t="lunch"].sel { background: var(--lunch-light); border-color: var(--lunch); color: var(--lunch-dark); }
+  .type-opt[data-t="dinner"].sel { background: var(--dinner-light); border-color: var(--dinner); color: var(--dinner-dark); }
+  .type-opt[data-t="snack"].sel { background: var(--snack-light); border-color: var(--snack); color: var(--snack-dark); }
+
+  .adjusted-banner { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #5D4037; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .tag-packable { font-size: 10px; background: var(--lunch-light); color: var(--lunch-dark); border-radius: 4px; padding: 1px 5px; margin-top: 2px; display: inline-block; }
+
+  @media (max-width: 900px) {
+    .day-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .grocery-panels { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .day-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .nav-tabs { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-title">Meal Planner</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('planner')">Meal Plan</button>
+    <button class="nav-tab" onclick="switchTab('grocery')">Groceries</button>
+    <button class="nav-tab" onclick="switchTab('history')">History</button>
+  </div>
+  <div class="nav-right">
+    <div class="week-selector">
+      <button class="week-btn" onclick="changeWeek(-1)">&#8249;</button>
+      <span id="week-label">This week</span>
+      <button class="week-btn" onclick="changeWeek(1)">&#8250;</button>
+    </div>
+    <button class="btn btn-sm btn-primary" onclick="saveWeek()">Save week</button>
+  </div>
+</nav>
+
+<!-- PLANNER TAB -->
+<div id="tab-planner" class="tab-content active">
+  <div class="planner">
+    <div class="planner-header">
+      <div>
+        <div class="planner-title" id="planner-title">Week of March 17</div>
+        <div class="planner-subtitle">Click any meal to edit · Drag to rearrange · Missing groceries shown in adjusted view</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="switchTab('grocery')">View groceries</button>
+        <button class="btn btn-sm" onclick="toggleAdjusted()">Toggle adjusted view</button>
+        <button class="btn btn-sm" onclick="openAddMeal()">+ Add meal</button>
+      </div>
+    </div>
+    <div id="adjusted-banner" class="adjusted-banner" style="display:none">
+      ⚠ Adjusted view: meals have been swapped based on your available groceries.
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--breakfast)"></div>Breakfast</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--lunch)"></div>Lunch (packable)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--dinner)"></div>Dinner</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--snack)"></div>Snack</div>
+    </div>
+    <div class="day-grid" id="day-grid"></div>
+  </div>
+</div>
+
+<!-- GROCERY TAB -->
+<div id="tab-grocery" class="tab-content">
+  <div class="grocery">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <div class="planner-title" style="font-family:'DM Serif Display',serif;font-size:26px;" id="grocery-title">Groceries</div>
+        <div style="font-size:13px;color:var(--text-muted);">Tick what you've bought to update your adjusted meal plan</div>
+      </div>
+      <button class="btn btn-sm" onclick="untickAll()">Untick all</button>
+    </div>
+    <div class="grocery-panels">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Suggested shopping list</div>
+            <div class="panel-subtitle">Based on your meal plan</div>
+          </div>
+          <span id="available-count" class="available-count">0 / 0</span>
+        </div>
+        <div class="panel-body" id="suggested-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">What you have</div>
+            <div class="panel-subtitle">Ticked items from shopping list</div>
+          </div>
+          <span id="missing-count-badge" class="missing-count" style="display:none">missing</span>
+        </div>
+        <div class="panel-body" id="available-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="tab-history" class="tab-content">
+  <div class="history">
+    <div class="history-header">
+      <div class="history-title">Saved weeks</div>
+      <button class="btn btn-sm btn-primary" onclick="saveWeek()">Save current week</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- MEAL MODAL -->
+<div class="modal-overlay" id="meal-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Edit meal</div>
+    <div class="modal-subtitle" id="modal-subtitle">Mon · Breakfast</div>
+    <div class="modal-field">
+      <div class="modal-label">Meal type</div>
+      <div class="type-selector" id="type-selector">
+        <div class="type-opt" data-t="breakfast" onclick="selectType('breakfast')">Breakfast</div>
+        <div class="type-opt" data-t="lunch" onclick="selectType('lunch')">Lunch</div>
+        <div class="type-opt" data-t="dinner" onclick="selectType('dinner')">Dinner</div>
+        <div class="type-opt" data-t="snack" onclick="selectType('snack')">Snack</div>
+      </div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Meal name</div>
+      <input class="modal-input" id="modal-name" placeholder="e.g. Greek yogurt with berries" />
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Note (optional)</div>
+      <input class="modal-input" id="modal-note" placeholder="e.g. prep the night before" />
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Packable lunch?</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+        <input type="checkbox" id="modal-packable" style="width:16px;height:16px;" />
+        Yes, take to work
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm btn-danger" id="modal-delete-btn" onclick="deleteMeal()">Delete</button>
+      <button class="btn btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-sm btn-primary" onclick="saveMeal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MEAL_TYPES = ['breakfast','lunch','dinner','snack'];
+const TYPE_LABELS = {breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner',snack:'Snack'};
+
+const DEFAULT_MEALS = {
+  Mon: [
+    {type:'breakfast',name:'Greek yogurt + berries + honey',note:'Quick, high protein',packable:false},
+    {type:'lunch',name:'Salmon grain bowl',note:'Rice, spinach, avocado, lemon',packable:true},
+    {type:'dinner',name:'Lamb mince stir-fry',note:'Capsicum, mushrooms, soy & ginger',packable:false},
+    {type:'snack',name:'Mixed nuts + dark chocolate',note:'',packable:false},
+  ],
+  Tue: [
+    {type:'breakfast',name:'Cottage cheese + banana',note:'High protein, no cook',packable:false},
+    {type:'lunch',name:'Chicken thigh wrap',note:'Harissa, spinach, capsicum',packable:true},
+    {type:'dinner',name:'Pasta with beef mince',note:'Crushed tomato, parmesan, basil',packable:false},
+    {type:'snack',name:'Apple + almond butter',note:'',packable:false},
+  ],
+  Wed: [
+    {type:'breakfast',name:'Scrambled eggs on sourdough',note:'2 eggs, 1 slice',packable:false},
+    {type:'lunch',name:'Quinoa + feta salad',note:'Tomatoes, chickpeas, olive oil',packable:true},
+    {type:'dinner',name:'Baked salmon fillet',note:'Sweet potato mash, broccoli',packable:false},
+    {type:'snack',name:'Greek yogurt + fruit',note:'',packable:false},
+  ],
+  Thu: [
+    {type:'breakfast',name:'Oat-free: yogurt + granola',note:'Grab and go',packable:false},
+    {type:'lunch',name:'Leftover salmon bowl',note:'From Wednesday dinner',packable:true},
+    {type:'dinner',name:'Chicken thigh traybake',note:'Sweet potato, capsicum, harissa',packable:false},
+    {type:'snack',name:'Rice cakes + cottage cheese',note:'',packable:false},
+  ],
+  Fri: [
+    {type:'breakfast',name:'Eggs + spinach scramble',note:'5 min cook',packable:false},
+    {type:'lunch',name:'Beef mince lettuce cups',note:'Asian style, sesame soy',packable:true},
+    {type:'dinner',name:'White fish tacos',note:'Warm wraps, capsicum slaw, avocado',packable:false},
+    {type:'snack',name:'Seasonal fruit',note:'',packable:false},
+  ],
+  Sat: [
+    {type:'breakfast',name:'Full egg breakfast',note:'Eggs, mushrooms, tomato, sourdough',packable:false},
+    {type:'lunch',name:'Lamb cutlets + quinoa',note:'Weekend lunch, leisurely',packable:false},
+    {type:'dinner',name:'Slow-roasted salmon',note:'Mediterranean herbs, lemon, capers',packable:false},
+    {type:'snack',name:'Dark chocolate + nuts',note:'',packable:false},
+  ],
+  Sun: [
+    {type:'breakfast',name:'Cottage cheese pancakes',note:'High protein, weekend treat',packable:false},
+    {type:'lunch',name:'Batch cook day',note:'Prep rice, roast proteins for the week',packable:false},
+    {type:'dinner',name:'Beef & chickpea stew',note:'Tinned tomatoes, cumin, spinach',packable:false},
+    {type:'snack',name:'Yogurt bowl',note:'Berries, honey, nuts',packable:false},
+  ],
+};
+
+const GROCERY_LIST = [
+  {cat:'Protein', items:[
+    {name:'Salmon fillets',qty:'600g'},{name:'White fish (barramundi)',qty:'400g'},
+    {name:'Chicken thighs',qty:'1kg'},{name:'Beef mince (lean)',qty:'500g'},
+    {name:'Lamb mince / cutlets',qty:'400g'},{name:'Eggs',qty:'12 pack'},
+  ]},
+  {cat:'Dairy', items:[
+    {name:'Greek yogurt',qty:'1kg tub'},{name:'Cottage cheese',qty:'500g'},
+    {name:'Feta cheese',qty:'200g'},{name:'Parmesan',qty:'100g'},
+  ]},
+  {cat:'Produce', items:[
+    {name:'Baby spinach',qty:'250g'},{name:'Mushrooms',qty:'400g'},
+    {name:'Capsicum (red & yellow)',qty:'4 large'},{name:'Sweet potato',qty:'1kg'},
+    {name:'Cherry tomatoes',qty:'400g'},{name:'Avocado',qty:'3'},
+    {name:'Broccoli',qty:'1 head'},{name:'Lemon',qty:'4'},
+  ]},
+  {cat:'Carbs & grains', items:[
+    {name:'Basmati rice',qty:'1kg'},{name:'Quinoa',qty:'500g'},
+    {name:'Wholemeal pasta',qty:'500g'},{name:'Wholemeal wraps',qty:'8 pack'},
+    {name:'Sourdough bread',qty:'1 loaf'},
+  ]},
+  {cat:'Pantry', items:[
+    {name:'Tinned chickpeas',qty:'2 x 400g'},{name:'Tinned crushed tomatoes',qty:'2 x 400g'},
+    {name:'Harissa paste',qty:'1 jar'},{name:'Tahini',qty:'1 jar'},
+    {name:'Soy sauce',qty:'small bottle'},{name:'Sesame oil',qty:'small bottle'},
+    {name:'Olive oil',qty:'500ml'},{name:'Honey',qty:'small jar'},
+  ]},
+  {cat:'Snacks', items:[
+    {name:'Mixed nuts',qty:'200g'},{name:'Dark chocolate (70%+)',qty:'1 bar'},
+    {name:'Rice cakes',qty:'1 pack'},{name:'Seasonal fruit',qty:'2–3 types'},
+  ]},
+];
+
+let state = {
+  weekOffset: 0,
+  meals: JSON.parse(JSON.stringify(DEFAULT_MEALS)),
+  ticked: {},
+  adjustedMode: false,
+  history: [],
+  editingDay: null,
+  editingIdx: null,
+  editingType: null,
+};
+
+try {
+  const saved = localStorage.getItem('mealplanner_v2');
+  if (saved) { const p = JSON.parse(saved); state.history = p.history || []; state.ticked = p.ticked || {}; }
+} catch(e){}
+
+function persist() {
+  try { localStorage.setItem('mealplanner_v2', JSON.stringify({history: state.history, ticked: state.ticked})); } catch(e){}
+}
+
+function getWeekStart(offset) {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff + offset * 7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function weekLabel(offset) {
+  const d = getWeekStart(offset);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (offset === 0) return `This week · ${months[d.getMonth()]} ${d.getDate()}`;
+  if (offset === -1) return `Last week · ${months[d.getMonth()]} ${d.getDate()}`;
+  if (offset === 1) return `Next week · ${months[d.getMonth()]} ${d.getDate()}`;
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function getDates(offset) {
+  const start = getWeekStart(offset);
+  return DAYS.map((_,i) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    return d.getDate();
+  });
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => { if (t.textContent.toLowerCase().includes(tab === 'planner' ? 'meal' : tab)) t.classList.add('active'); });
+  if (tab === 'grocery') renderGrocery();
+  if (tab === 'history') renderHistory();
+  if (tab === 'planner') renderPlanner();
+}
+
+function changeWeek(dir) {
+  state.weekOffset += dir;
+  document.getElementById('week-label').textContent = weekLabel(state.weekOffset);
+  renderPlanner();
+}
+
+function getAdjustedMeals() {
+  const tickedNames = new Set(Object.keys(state.ticked).filter(k => state.ticked[k]));
+  const adjusted = {};
+  const swapMap = {
+    'Salmon grain bowl': {name:'Egg & quinoa bowl', note:'Swapped — no salmon', swap:true},
+    'Chicken thigh wrap': {name:'Cottage cheese wrap', note:'Swapped — no chicken', swap:true},
+    'Baked salmon fillet': {name:'Egg fried rice', note:'Swapped — no salmon', swap:true},
+    'Slow-roasted salmon': {name:'Beef mince bowl', note:'Swapped — no salmon', swap:true},
+    'White fish tacos': {name:'Egg tacos', note:'Swapped — no white fish', swap:true},
+  };
+  const missingKeywords = [];
+  if (!tickedNames.has('Salmon fillets')) missingKeywords.push('salmon','Salmon');
+  if (!tickedNames.has('Chicken thighs')) missingKeywords.push('chicken','Chicken');
+  if (!tickedNames.has('White fish (barramundi)')) missingKeywords.push('fish','Fish','tacos');
+
+  DAYS.forEach(day => {
+    adjusted[day] = (state.meals[day] || []).map(meal => {
+      if (state.adjustedMode) {
+        const hasMissing = missingKeywords.some(kw => meal.name.toLowerCase().includes(kw.toLowerCase()));
+        if (hasMissing && swapMap[meal.name]) return {...meal, ...swapMap[meal.name]};
+        if (hasMissing) return {...meal, missing: true};
+      }
+      return meal;
+    });
+  });
+  return adjusted;
+}
+
+function renderPlanner() {
+  const dates = getDates(state.weekOffset);
+  document.getElementById('planner-title').textContent = `Week of ${weekLabel(state.weekOffset).split('·')[1]?.trim() || weekLabel(state.weekOffset)}`;
+  document.getElementById('adjusted-banner').style.display = state.adjustedMode ? 'flex' : 'none';
+  const adjMeals = getAdjustedMeals();
+  const grid = document.getElementById('day-grid');
+  grid.innerHTML = DAYS.map((day, di) => {
+    const meals = adjMeals[day] || [];
+    const mealsHtml = MEAL_TYPES.map(type => {
+      const meal = meals.find(m => m.type === type);
+      if (!meal) return `<div class="meal-slot empty" onclick="openAddMealSlot('${day}','${type}')">
+        <div class="meal-type-tag" style="color:var(--text-muted)">${TYPE_LABELS[type]}</div>
+        <div style="font-size:11px;color:var(--text-muted)">+ add</div>
+      </div>`;
+      const idx = meals.indexOf(meal);
+      return `<div class="meal-slot ${type} ${meal.missing?'missing':''}" onclick="openEditMeal('${day}',${idx})">
+        <div class="meal-type-tag">${TYPE_LABELS[type]}</div>
+        <div class="meal-name">${meal.name}</div>
+        ${meal.note ? `<div class="meal-note">${meal.note}</div>` : ''}
+        ${meal.packable ? `<div class="tag-packable">packable</div>` : ''}
+        ${meal.swap ? `<div class="meal-swap-badge">swapped</div>` : ''}
+        ${meal.missing ? `<div class="meal-missing-badge">missing ingredient</div>` : ''}
+        <div class="meal-actions">
+          <button class="meal-action-btn" onclick="event.stopPropagation();deleteMealDirect('${day}',${idx})" title="Delete">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="day-col">
+      <div class="day-header">
+        <div class="day-name">${day}</div>
+        <div class="day-date">${dates[di]}</div>
+      </div>
+      <div class="day-meals">${mealsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAdjusted() {
+  state.adjustedMode = !state.adjustedMode;
+  renderPlanner();
+}
+
+function renderGrocery() {
+  const allItems = GROCERY_LIST.flatMap(s => s.items.map(i => i.name));
+  const tickedCount = allItems.filter(n => state.ticked[n]).length;
+  document.getElementById('available-count').textContent = `${tickedCount} / ${allItems.length}`;
+  const missing = allItems.filter(n => !state.ticked[n]);
+  const mb = document.getElementById('missing-count-badge');
+  if (missing.length > 0) { mb.style.display = 'inline-block'; mb.textContent = `${missing.length} missing`; }
+  else { mb.style.display = 'none'; }
+
+  let sugHtml = '';
+  GROCERY_LIST.forEach(sec => {
+    sugHtml += `<div class="grocery-section"><div class="grocery-section-title">${sec.cat}</div>`;
+    sec.items.forEach(item => {
+      const ticked = state.ticked[item.name];
+      sugHtml += `<div class="grocery-item ${ticked?'ticked':''}" onclick="tickItem('${item.name}')">
+        <div class="g-check ${ticked?'ticked':''}"></div>
+        <span class="g-name">${item.name}</span>
+        <span class="g-qty">${item.qty}</span>
+      </div>`;
+    });
+    sugHtml += `</div>`;
+  });
+  document.getElementById('suggested-list').innerHTML = sugHtml;
+
+  const available = allItems.filter(n => state.ticked[n]);
+  let avHtml = '';
+  if (available.length === 0) {
+    avHtml = `<div class="empty-state">Tick items on the left as you buy them — they'll appear here and update your meal plan.</div>`;
+  } else {
+    GROCERY_LIST.forEach(sec => {
+      const avInSec = sec.items.filter(i => state.ticked[i.name]);
+      if (avInSec.length === 0) return;
+      avHtml += `<div class="grocery-section"><div class="grocery-section-title">${sec.cat}</div>`;
+      avInSec.forEach(item => {
+        avHtml += `<div class="available-item"><span class="g-name">${item.name}</span><span class="g-qty" style="font-size:12px;color:var(--snack-dark)">${item.qty}</span></div>`;
+      });
+      avHtml += `</div>`;
+    });
+  }
+  document.getElementById('available-list').innerHTML = avHtml;
+}
+
+function tickItem(name) {
+  state.ticked[name] = !state.ticked[name];
+  persist();
+  renderGrocery();
+}
+
+function untickAll() {
+  state.ticked = {};
+  persist();
+  renderGrocery();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (state.history.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted);font-size:14px;">No saved weeks yet. Save your current meal plan to start building history.</div>`;
+    return;
+  }
+  list.innerHTML = state.history.slice().reverse().map((w,ri) => {
+    const i = state.history.length - 1 - ri;
+    const meals = Object.values(w.meals).flat();
+    const bNames = meals.filter(m=>m.type==='breakfast').slice(0,3).map(m=>m.name);
+    const lNames = meals.filter(m=>m.type==='lunch').slice(0,2).map(m=>m.name);
+    const dNames = meals.filter(m=>m.type==='dinner').slice(0,2).map(m=>m.name);
+    return `<div class="week-card">
+      <div class="week-card-header">
+        <div>
+          <div class="week-card-title">${w.label}</div>
+          <div class="week-card-date">Saved ${w.saved}</div>
+        </div>
+        <div class="week-card-actions">
+          <button class="btn btn-sm" onclick="loadWeek(${i})">Load & edit</button>
+          <button class="btn btn-sm" onclick="copyWeek(${i})">Copy to current</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteWeek(${i})">Delete</button>
+        </div>
+      </div>
+      <div class="week-meals-preview">
+        ${bNames.map(n=>`<span class="preview-chip chip-b">${n}</span>`).join('')}
+        ${lNames.map(n=>`<span class="preview-chip chip-l">${n}</span>`).join('')}
+        ${dNames.map(n=>`<span class="preview-chip chip-d">${n}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveWeek() {
+  const label = weekLabel(state.weekOffset);
+  const now = new Date();
+  const saved = now.toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'});
+  state.history.push({label, saved, meals: JSON.parse(JSON.stringify(state.meals)), weekOffset: state.weekOffset});
+  persist();
+  alert(`Week saved: ${label}`);
+}
+
+function loadWeek(i) {
+  const w = state.history[i];
+  state.meals = JSON.parse(JSON.stringify(w.meals));
+  state.weekOffset = w.weekOffset || 0;
+  document.getElementById('week-label').textContent = weekLabel(state.weekOffset);
+  switchTab('planner');
+}
+
+function copyWeek(i) {
+  state.meals = JSON.parse(JSON.stringify(state.history[i].meals));
+  switchTab('planner');
+}
+
+function deleteWeek(i) {
+  if (!confirm('Delete this saved week?')) return;
+  state.history.splice(i, 1);
+  persist();
+  renderHistory();
+}
+
+let modalCtx = {};
+
+function openEditMeal(day, idx) {
+  const meal = state.meals[day][idx];
+  modalCtx = {day, idx, isNew: false};
+  document.getElementById('modal-title').textContent = 'Edit meal';
+  document.getElementById('modal-subtitle').textContent = `${day}`;
+  document.getElementById('modal-name').value = meal.name;
+  document.getElementById('modal-note').value = meal.note || '';
+  document.getElementById('modal-packable').checked = meal.packable || false;
+  document.getElementById('modal-delete-btn').style.display = 'inline-block';
+  selectType(meal.type);
+  document.getElementById('meal-modal').classList.add('open');
+}
+
+function openAddMeal() {
+  modalCtx = {day: 'Mon', idx: -1, isNew: true};
+  document.getElementById('modal-title').textContent = 'Add meal';
+  document.getElementById('modal-subtitle').textContent = 'Choose day and type';
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-note').value = '';
+  document.getElementById('modal-packable').checked = false;
+  document.getElementById('modal-delete-btn').style.display = 'none';
+  selectType('dinner');
+  document.getElementById('meal-modal').classList.add('open');
+}
+
+function openAddMealSlot(day, type) {
+  modalCtx = {day, idx: -1, isNew: true};
+  document.getElementById('modal-title').textContent = 'Add meal';
+  document.getElementById('modal-subtitle').textContent = `${day} · ${TYPE_LABELS[type]}`;
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-note').value = '';
+  document.getElementById('modal-packable').checked = false;
+  document.getElementById('modal-delete-btn').style.display = 'none';
+  selectType(type);
+  document.getElementById('meal-modal').classList.add('open');
+}
+
+function selectType(type) {
+  modalCtx.type = type;
+  document.querySelectorAll('.type-opt').forEach(o => {
+    o.classList.toggle('sel', o.dataset.t === type);
+  });
+}
+
+function saveMeal() {
+  const name = document.getElementById('modal-name').value.trim();
+  if (!name) { document.getElementById('modal-name').focus(); return; }
+  const meal = {
+    type: modalCtx.type || 'dinner',
+    name,
+    note: document.getElementById('modal-note').value.trim(),
+    packable: document.getElementById('modal-packable').checked,
+  };
+  const day = modalCtx.day;
+  if (!state.meals[day]) state.meals[day] = [];
+  if (modalCtx.isNew) {
+    state.meals[day] = state.meals[day].filter(m => m.type !== meal.type);
+    state.meals[day].push(meal);
+  } else {
+    state.meals[day][modalCtx.idx] = meal;
+  }
+  closeModal();
+  renderPlanner();
+}
+
+function deleteMeal() {
+  if (!confirm('Delete this meal?')) return;
+  state.meals[modalCtx.day].splice(modalCtx.idx, 1);
+  closeModal();
+  renderPlanner();
+}
+
+function deleteMealDirect(day, idx) {
+  state.meals[day].splice(idx, 1);
+  renderPlanner();
+}
+
+function closeModal() {
+  document.getElementById('meal-modal').classList.remove('open');
+}
+
+document.getElementById('meal-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.getElementById('week-label').textContent = weekLabel(0);
+renderPlanner();
+</script>
+</body>
+</html>
